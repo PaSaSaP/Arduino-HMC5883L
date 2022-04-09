@@ -37,7 +37,7 @@ void setup ()
   strokeWeight(3);
   textSize(12);
 
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort = new Serial(this, "/dev/cu.usbserial-A50285BI", 57600);
   myPort.bufferUntil(10);
 }
 
@@ -51,7 +51,7 @@ void draw()
   fill(255);  // Set fill to white
   text(minX+" "+maxX+" = "+offX, 10, 20);
   text(minY+" "+maxY+" = "+offY, 10, 35);
-  point((x*0.5)+250, (y*0.5)+250);
+  point((x*0.1)+250, (y*0.1)+250);
 }
 
 void serialEvent (Serial myPort)

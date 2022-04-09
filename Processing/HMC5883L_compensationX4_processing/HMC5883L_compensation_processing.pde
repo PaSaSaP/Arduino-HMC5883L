@@ -20,11 +20,11 @@ boolean hasData = false;
 
 // Charts
 PGraphics pgChart;
-int[] colors = { #ff4444, #33ff99 };
-String[] headingSeries = { "Normal", "Compensated"};
+int[] colors = { #ff4444, #4444ff, #33ff99, #ffffff };
+String[] headingSeries = { "Normal", "Accel Compensated", "Q Compensated", "Q mean"};
 
 // Data for compare
-float[][] headingValues = new float[2][maxSamples];
+float[][] headingValues = new float[4][maxSamples];
 
 // Artificial Horizon
 PGraphics pgCompassPlate;
@@ -308,11 +308,13 @@ void serialEvent (Serial myPort)
     String[] list = split(inString, ':');
     String testString = trim(list[0]);
 
-    if (list.length != 2) return;
+    if (list.length != 4) return;
 
     // Headings
     headingValues[0][actualSample] = (float(list[0]));
     headingValues[1][actualSample] = (float(list[1]));
+    headingValues[2][actualSample] = (float(list[2]));
+    headingValues[3][actualSample] = (float(list[3]));
 
     if (actualSample > 1)
     {

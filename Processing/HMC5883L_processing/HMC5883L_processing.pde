@@ -46,7 +46,7 @@ void setup ()
   initCompass();
 
   // Serial
-  myPort = new Serial(this, Serial.list()[0], 9600);
+  myPort = new Serial(this, "/dev/cu.usbserial-A50285BI", 57600);
   myPort.bufferUntil(10);
 }
 
