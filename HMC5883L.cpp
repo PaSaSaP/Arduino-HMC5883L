@@ -47,13 +47,13 @@ bool HMC5883L::begin()
 	return false;
     }
 
+    writeRegister8(HMC5883L_REG_CONFIG_B, 0x01);
+    writeRegister8(HMC5883L_REG_PERIOD, 0x01);
+
     setRange(HMC5883L_RANGE_2GA);
     setMeasurementMode(HMC5883L_CONTINOUS);
     setDataRate(HMC5883L_DATARATE_50HZ);
     setSamples(HMC5883L_SAMPLES_512);
-
-    writeRegister8(HMC5883L_REG_CONFIG_B, 0x01);
-    writeRegister8(HMC5883L_REG_PERIOD, 0x01);
 
     // mgPerDigit = 0.92f;
     mgPerDigit = 1.0f;
