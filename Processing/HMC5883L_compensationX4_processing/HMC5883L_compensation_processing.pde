@@ -20,7 +20,7 @@ boolean hasData = false;
 
 // Charts
 PGraphics pgChart;
-int[] colors = { #ff4444, #4444ff, #33ff99, #ffffff };
+int[] colors = { #ff4444, #4444ff, #ffffff, #33ff99 };
 String[] headingSeries = { "Normal", "Accel Compensated", "Q Compensated", "Q mean"};
 
 // Data for compare
@@ -37,7 +37,7 @@ int compassHeight;
 
 void setup ()
 {
-  size(570, 550, P2D);
+  size(570, 850, P2D);
   background(0);
 
   // Init
@@ -224,7 +224,7 @@ void draw()
 
   background(0);
 
-  drawChart("Heading [deg]", headingSeries, headingValues, 10, 280, 200, true, true, 0, 360, 30);
+  drawChart("Heading [deg]", headingSeries, headingValues, 10, 280, 500, true, true, 0, 360, 30);
   drawCompass(10, 5, headingValues[0], imgCompassPlateWhite);
   drawCompass(295, 5, headingValues[1], imgCompassPlateWhite);
 }
