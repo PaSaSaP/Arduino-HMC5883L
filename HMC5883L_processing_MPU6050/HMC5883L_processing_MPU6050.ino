@@ -8,27 +8,35 @@
 
 #include <Wire.h>
 #include <HMC5883L.h>
-#include <MPU6050.h>
+//#include <MPU6050.h>
 
 HMC5883L compass;
-MPU6050 mpu;
+//MPU6050 mpu;
 
 int previousDegree;
 
+int const currOffX = -176;
+int const currOffY = -1685;
+int const currOffZ = 120;
+
+int const currScaleX = 10597;
+int const currScaleY = 11104;
+int const currScaleZ = 10940;
+
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   // Initialize MPU6050
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    delay(500);
-  }
+  //  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+  //  {
+  //    delay(500);
+  //  }
 
   // Enable bypass mode
-  mpu.setI2CMasterModeEnabled(false);
-  mpu.setI2CBypassEnabled(true);
-  mpu.setSleepEnabled(false);
+  //  mpu.setI2CMasterModeEnabled(false);
+  //  mpu.setI2CBypassEnabled(true);
+  //  mpu.setSleepEnabled(false);
 
   // Initialize HMC5883L
   while (!compass.begin())
@@ -37,19 +45,30 @@ void setup()
   }
 
   // Set measurement range
-  compass.setRange(HMC5883L_RANGE_1_3GA);
+  //  compass.setRange(HMC5883L_RANGE_8GA);
 
   // Set measurement mode
-  compass.setMeasurementMode(HMC5883L_CONTINOUS);
+  //  compass.setMeasurementMode(HMC5883L_CONTINOUS);
 
   // Set data rate
-  compass.setDataRate(HMC5883L_DATARATE_30HZ);
+  //  compass.setDataRate(HMC5883L_DATARATE_50HZ);
 
   // Set number of samples averaged
-  compass.setSamples(HMC5883L_SAMPLES_8);
+  //  compass.setSamples(HMC5883L_SAMPLES_512);
 
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0); 
+    compass.setOffset(currOffX, currOffY, currOffZ);
+    compass.setScale(currScaleX, currScaleY, currScaleZ);
+}
+
+float correctAngle(float angle) {
+  if (angle < 0) {
+    angle += 2 * PI;
+  }
+  if (angle > 2 * PI) {
+    angle -= 2 * PI;
+  }
+  return angle;
 }
 
 void loop()
@@ -65,35 +84,31 @@ void loop()
   // (+) Positive or (-) for negative
   // For Bytom / Poland declination angle is 4'26E (positive)
   // Formula: (deg + (min / 60.0)) / (180 / M_PI);
-  float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
-  heading += declinationAngle;
+  float declinationAngle = (6.0 + (23.0 / 60.0)) / (180 / M_PI);
+  //  heading += declinationAngle;
+  float fixedHeading = heading + declinationAngle;
 
   // Correct for heading < 0deg and heading > 360deg
-  if (heading < 0)
-  {
-    heading += 2 * PI;
-  }
- 
-  if (heading > 2 * PI)
-  {
-    heading -= 2 * PI;
-  }
+  heading = correctAngle(heading);
+  fixedHeading = correctAngle(fixedHeading);
 
   // Convert to degrees
-  float headingDegrees = heading * 180/M_PI; 
+  float headingDegrees = heading * 180 / M_PI;
+  float fixedHeadingDegrees = fixedHeading * 180 / M_PI;
+  
 
   // Fix HMC5883L issue with angles
-  float fixedHeadingDegrees;
- 
-  if (headingDegrees >= 1 && headingDegrees < 240)
-  {
-    fixedHeadingDegrees = map(headingDegrees, 0, 239, 0, 179);
-  } else
-  if (headingDegrees >= 240)
-  {
-    fixedHeadingDegrees = map(headingDegrees, 240, 360, 180, 360);
-  }
-
+//  float fixedHeadingDegrees = headingDegrees;
+  /*
+    if (headingDegrees >= 1 && headingDegrees < 240)
+    {
+     fixedHeadingDegrees = map(headingDegrees, 0, 239, 0, 179);
+    } else
+    if (headingDegrees >= 240)
+    {
+     fixedHeadingDegrees = map(headingDegrees, 240, 360, 180, 360);
+    }
+  */
   // Smooth angles rotation for +/- 3deg
   int smoothHeadingDegrees = round(fixedHeadingDegrees);
 
@@ -101,7 +116,7 @@ void loop()
   {
     smoothHeadingDegrees = previousDegree;
   }
-  
+
   previousDegree = smoothHeadingDegrees;
 
   // Output
@@ -115,11 +130,10 @@ void loop()
   Serial.print(":");
   Serial.print(fixedHeadingDegrees);
   Serial.print(":");
-  Serial.print(smoothHeadingDegrees);  
+  Serial.print(smoothHeadingDegrees);
   Serial.println();
 
   // One loop: ~5ms @ 115200 serial.
   // We need delay ~28ms for allow data rate 30Hz (~33ms)
   delay(30);
 }
-

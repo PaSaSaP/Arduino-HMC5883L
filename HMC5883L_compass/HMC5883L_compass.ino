@@ -13,7 +13,7 @@ HMC5883L compass;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   // Initialize Initialize HMC5883L
   Serial.println("Initialize HMC5883L");
@@ -36,7 +36,7 @@ void setup()
   compass.setSamples(HMC5883L_SAMPLES_8);
 
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0);
+  compass.setOffset(107, -43);
 }
 
 void loop()
@@ -51,7 +51,7 @@ void loop()
   // (+) Positive or (-) for negative
   // For Bytom / Poland declination angle is 4'26E (positive)
   // Formula: (deg + (min / 60.0)) / (180 / M_PI);
-  float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
+  float declinationAngle = (6.0 + (33.0 / 60.0)) / (180 / M_PI);
   heading += declinationAngle;
 
   // Correct for heading < 0deg and heading > 360deg
@@ -77,4 +77,3 @@ void loop()
 
   delay(100);
 }
-

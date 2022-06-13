@@ -13,22 +13,30 @@
 HMC5883L compass;
 MPU6050 mpu;
 
+// for HMC5883L_RANGE_1_3GA
+//int currOffX = 107;
+//int currOffY = -43;
+
+// for HMC5883L_RANGE_4_7GA
+int currOffX = 35;
+int currOffY = -11;
+
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   // If you have GY-86 or GY-87 module.
   // To access HMC5883L you need to disable the I2C Master Mode and Sleep Mode, and enable I2C Bypass Mode
 
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
-    delay(500);
-  }
+  //  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+  //  {
+  //    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
+  //    delay(500);
+  //  }
 
-  mpu.setI2CMasterModeEnabled(false);
-  mpu.setI2CBypassEnabled(true) ;
-  mpu.setSleepEnabled(false);
+  //  mpu.setI2CMasterModeEnabled(false);
+  //  mpu.setI2CBypassEnabled(true) ;
+  //  mpu.setSleepEnabled(false);
 
   // Initialize Initialize HMC5883L
   Serial.println("Initialize HMC5883L");
@@ -39,7 +47,8 @@ void setup()
   }
 
   // Set measurement range
-  compass.setRange(HMC5883L_RANGE_1_3GA);
+//  compass.setRange(HMC5883L_RANGE_1_3GA);
+  compass.setRange(HMC5883L_RANGE_4_7GA);
 
   // Set measurement mode
   compass.setMeasurementMode(HMC5883L_CONTINOUS);
@@ -51,7 +60,7 @@ void setup()
   compass.setSamples(HMC5883L_SAMPLES_8);
 
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0); 
+  compass.setOffset(currOffX, currOffY);
 }
 
 void loop()
@@ -66,7 +75,7 @@ void loop()
   // (+) Positive or (-) for negative
   // For Bytom / Poland declination angle is 4'26E (positive)
   // Formula: (deg + (min / 60.0)) / (180 / M_PI);
-  float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
+  float declinationAngle = (6.0 + (33.0 / 60.0)) / (180 / M_PI);
   heading += declinationAngle;
 
   // Correct for heading < 0deg and heading > 360deg
@@ -74,20 +83,33 @@ void loop()
   {
     heading += 2 * PI;
   }
- 
+
   if (heading > 2 * PI)
   {
     heading -= 2 * PI;
   }
 
   // Convert to degrees
-  float headingDegrees = heading * 180/M_PI; 
+  float headingDegrees = heading * 180 / M_PI;
+
+  // Fix HMC5883L issue with angles
+  float fixedHeadingDegrees;
+
+  if (headingDegrees >= 1 && headingDegrees < 240)
+  {
+    fixedHeadingDegrees = map(headingDegrees, 0, 239, 0, 179);
+  } else if (headingDegrees >= 240)
+  {
+    fixedHeadingDegrees = map(headingDegrees, 240, 360, 180, 360);
+  }
 
   // Output
   Serial.print(" Heading = ");
   Serial.print(heading);
   Serial.print(" Degress = ");
   Serial.print(headingDegrees);
+  Serial.print(" FixDegress = ");
+  Serial.print(fixedHeadingDegrees);
   Serial.println();
 
   delay(100);
