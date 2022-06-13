@@ -57,6 +57,7 @@ bool HMC5883L::begin()
 
     // mgPerDigit = 0.92f;
     mgPerDigit = 1.0f;
+    setScale(1, 1, 1);
 
     return true;
 }
@@ -69,24 +70,33 @@ Vector HMC5883L::readRaw(void)
 	// while(true);
     v.XAxis = readRegister16(HMC5883L_REG_OUT_X) - xOffset;
     v.YAxis = readRegister16(HMC5883L_REG_OUT_Y) - yOffset;
-    v.ZAxis = readRegister16(HMC5883L_REG_OUT_Z);
+    v.ZAxis = readRegister16(HMC5883L_REG_OUT_Z) - zOffset;
 
     return v;
 }
 
 Vector HMC5883L::readNormalize(void)
 {
-    v.XAxis = ((float)readRegister16(HMC5883L_REG_OUT_X) - xOffset) * mgPerDigit;
-    v.YAxis = ((float)readRegister16(HMC5883L_REG_OUT_Y) - yOffset) * mgPerDigit;
-    v.ZAxis = (float)readRegister16(HMC5883L_REG_OUT_Z) * mgPerDigit;
+    v.XAxis = ((float)readRegister16(HMC5883L_REG_OUT_X) - xOffset) * xScale;
+    v.YAxis = ((float)readRegister16(HMC5883L_REG_OUT_Y) - yOffset) * yScale;
+    v.ZAxis = ((float)readRegister16(HMC5883L_REG_OUT_Z) - zOffset) * zScale;
 
     return v;
 }
 
-void HMC5883L::setOffset(int xo, int yo)
+void HMC5883L::setOffset(int xo, int yo, int zo)
 {
     xOffset = xo;
     yOffset = yo;
+    zOffset = zo;
+}
+
+void HMC5883L::setScale(int xo, int yo, int zo)
+{
+    float average = (xo + yo + zo) / 3.0;
+    xScale = average / xo;
+    yScale = average / yo;
+    zScale = average / zo;
 }
 
 void HMC5883L::setRange(hmc5883l_range_t range)
@@ -269,7 +279,7 @@ int16_t HMC5883L::readRegister16(uint8_t reg)
         uint8_t vha = Wire.receive();
     #endif
 
-    value = vha << 8 | vla;
+    value = int16_t(vha << 8 | vla);
 
     return value;
 }

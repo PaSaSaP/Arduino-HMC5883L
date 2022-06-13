@@ -2,6 +2,7 @@
     HMC5883L Triple Axis Digital Compass. 
     Processing for HMC5883L_compensation_MPU6050.ino
     Processing for HMC5883L_compensation_ADXL345.ino
+    Processing for sketch_9axis_compass
     Read more: http://www.jarzebski.pl/arduino/czujniki-i-sensory/3-osiowy-magnetometr-hmc5883l.html
     GIT: https://github.com/jarzebski/Arduino-HMC5883L
     Web: http://www.jarzebski.pl
@@ -226,7 +227,7 @@ void draw()
 
   drawChart("Heading [deg]", headingSeries, headingValues, 10, 280, 500, true, true, 0, 360, 30);
   drawCompass(10, 5, headingValues[0], imgCompassPlateWhite);
-  drawCompass(295, 5, headingValues[1], imgCompassPlateWhite);
+  drawCompass(295, 5, headingValues[3], imgCompassPlateWhite);
 }
 
 float getMin(float[][] chart)
