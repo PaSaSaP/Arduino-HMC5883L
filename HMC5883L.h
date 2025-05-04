@@ -88,9 +88,12 @@ class HMC5883L
 
 	Vector readRaw(void);
 	Vector readNormalize(void);
+    bool isDataValid() const { return valid; }
+    Vector getRawMag(void) const { return v; }
 
 	void  setOffset(int xo, int yo, int zo = 0);
 	void  setScale(int xo, int yo, int zo);
+    void resetOffsets();
 
 	void  setRange(hmc5883l_range_t range);
 	hmc5883l_range_t getRange(void);
@@ -110,11 +113,13 @@ class HMC5883L
 	Vector v;
 	int xOffset, yOffset, zOffset;
 	float xScale, yScale, zScale;
+    bool valid;
 
 	void writeRegister8(uint8_t reg, uint8_t value);
 	uint8_t readRegister8(uint8_t reg);
 	uint8_t fastRegister8(uint8_t reg);
 	int16_t readRegister16(uint8_t reg);
+    int16_t readRegister16AndCheckValidity(uint8_t reg);
 };
 
 #endif

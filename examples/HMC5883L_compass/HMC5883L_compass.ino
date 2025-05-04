@@ -11,6 +11,14 @@
 
 HMC5883L compass;
 
+int const currOffX = 820;
+int const currOffY = -1346;
+int const currOffZ = -440;
+
+int const currScaleX = 10000;
+int const currScaleY = 10000;
+int const currScaleZ = 10000;
+
 void setup()
 {
   Serial.begin(57600);
@@ -36,7 +44,8 @@ void setup()
   compass.setSamples(HMC5883L_SAMPLES_8);
 
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(107, -43);
+  compass.setOffset(currOffX, currOffY, currOffZ);
+  compass.setScale(currScaleX, currScaleY, currScaleZ);
 }
 
 void loop()
@@ -44,7 +53,8 @@ void loop()
   Vector norm = compass.readNormalize();
 
   // Calculate heading
-  float heading = atan2(norm.YAxis, norm.XAxis);
+  // float heading = atan2(norm.YAxis, norm.XAxis);
+  float heading = atan2(-norm.XAxis, norm.ZAxis);
 
   // Set declination angle on your location and fix heading
   // You can find your declination on: http://magnetic-declination.com/

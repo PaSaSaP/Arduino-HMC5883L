@@ -28,19 +28,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "HMC5883L.h"
 
-void check(char const* str, int addr = 0x09) {
-Wire.beginTransmission(HMC5883L_ADDRESS);
-Wire.write(addr);
-Wire.endTransmission();
-Wire.requestFrom(HMC5883L_ADDRESS,1);
-auto v = Wire.read();
-Serial.print(str);Serial.print("=");Serial.println(v, HEX);
-Serial.println(v,BIN);
+static void check(char const* str, int registry) {
+    Wire.beginTransmission(HMC5883L_ADDRESS);
+    Wire.write(registry);
+    Wire.endTransmission();
+    Wire.requestFrom(HMC5883L_ADDRESS,1);
+    auto v = Wire.read();
+    printf("%s=0x%X, %d\n", str, v, v);
 }
 
 bool HMC5883L::begin()
 {
-    Wire.begin();
+    // Wire.begin();
+
+    check("hmc5883 reg ident", HMC5883L_REG_IDENT_A);
 
     if (fastRegister8(HMC5883L_REG_IDENT_A) != 0xFF)
     {
@@ -64,24 +65,27 @@ bool HMC5883L::begin()
 
 Vector HMC5883L::readRaw(void)
 {
-	// check("R1", HMC5883L_REG_CONFIG_A);
-	// check("R2", HMC5883L_REG_CONFIG_B);
-	// check("PERIOD", HMC5883L_REG_PERIOD);
-	// while(true);
-    v.XAxis = readRegister16(HMC5883L_REG_OUT_X) - xOffset;
-    v.YAxis = readRegister16(HMC5883L_REG_OUT_Y) - yOffset;
-    v.ZAxis = readRegister16(HMC5883L_REG_OUT_Z) - zOffset;
-
+    valid = true;
+    v.XAxis = readRegister16AndCheckValidity(HMC5883L_REG_OUT_X);
+    v.YAxis = readRegister16AndCheckValidity(HMC5883L_REG_OUT_Y);
+    v.ZAxis = readRegister16AndCheckValidity(HMC5883L_REG_OUT_Z);
+    
     return v;
 }
 
 Vector HMC5883L::readNormalize(void)
 {
-    v.XAxis = ((float)readRegister16(HMC5883L_REG_OUT_X) - xOffset) * xScale;
-    v.YAxis = ((float)readRegister16(HMC5883L_REG_OUT_Y) - yOffset) * yScale;
-    v.ZAxis = ((float)readRegister16(HMC5883L_REG_OUT_Z) - zOffset) * zScale;
+    Vector vec = readRaw();
 
-    return v;
+    vec.XAxis -= xOffset;
+    vec.YAxis -= yOffset;
+    vec.ZAxis -= zOffset;
+
+    vec.XAxis *= xScale;
+    vec.YAxis *= yScale;
+    vec.ZAxis *= zScale;
+
+    return vec;
 }
 
 void HMC5883L::setOffset(int xo, int yo, int zo)
@@ -97,6 +101,11 @@ void HMC5883L::setScale(int xo, int yo, int zo)
     xScale = average / xo;
     yScale = average / yo;
     zScale = average / zo;
+}
+
+void HMC5883L::resetOffsets() {
+    setOffset(0, 0, 0);
+    setScale(1, 1, 1);
 }
 
 void HMC5883L::setRange(hmc5883l_range_t range)
@@ -190,6 +199,16 @@ hmc5883l_samples_t HMC5883L::getSamples(void)
     value >>= 6;
 
     return (hmc5883l_samples_t)value;
+}
+
+int16_t HMC5883L::readRegister16AndCheckValidity(uint8_t reg)
+{
+    int16_t reading = readRegister16(reg);
+    using limits = std::numeric_limits<int16_t>;
+    if (reading == limits::max() || reading == limits::min()) {
+        valid = false;
+    }
+    return reading;
 }
 
 // Write byte to register

@@ -11,11 +11,19 @@
 
 HMC5883L compass;
 
+int const currOffX = 820;
+int const currOffY = -1346;
+int const currOffZ = -440;
+
+int const currScaleX = 10000;
+int const currScaleY = 10000;
+int const currScaleZ = 10000;
+
 int previousDegree;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   // Initialize HMC5883L
   while (!compass.begin())
@@ -24,19 +32,20 @@ void setup()
   }
 
   // Set measurement range
-  compass.setRange(HMC5883L_RANGE_1_3GA);
+  // compass.setRange(HMC5883L_RANGE_1_3GA);
 
   // Set measurement mode
   compass.setMeasurementMode(HMC5883L_CONTINOUS);
 
   // Set data rate
-  compass.setDataRate(HMC5883L_DATARATE_30HZ);
+  // compass.setDataRate(HMC5883L_DATARATE_30HZ);
 
   // Set number of samples averaged
-  compass.setSamples(HMC5883L_SAMPLES_8);
+  // compass.setSamples(HMC5883L_SAMPLES_8);
 
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0); 
+  compass.setOffset(currOffX, currOffY, currOffZ);
+  compass.setScale(currScaleX, currScaleY, currScaleZ);
 }
 
 void loop()
@@ -45,7 +54,12 @@ void loop()
   Vector norm = compass.readNormalize();
 
   // Calculate heading
-  float heading = atan2(norm.YAxis, norm.XAxis);
+  // in hmc module +x is backward (so -x is forward)
+  // +y is right, +z is top
+  // float heading = atan2(norm.YAxis, norm.XAxis);
+  // in my project it is rotated so +z is forward,
+  // +x is right, -y is top
+  float heading = atan2(-norm.XAxis, norm.ZAxis);
 
   // Set declination angle on your location and fix heading
   // You can find your declination on: http://magnetic-declination.com/
@@ -82,7 +96,7 @@ void loop()
   }
 
   // Smooth angles rotation for +/- 3deg
-  int smoothHeadingDegrees = round(fixedHeadingDegrees);
+  int smoothHeadingDegrees = round(headingDegrees);
 
   if (smoothHeadingDegrees < (previousDegree + 3) && smoothHeadingDegrees > (previousDegree - 3))
   {

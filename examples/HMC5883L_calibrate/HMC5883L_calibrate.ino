@@ -52,6 +52,7 @@ int const gyroOffsetY = -259;
 int const gyroOffsetZ = 63;
 */
 
+
 int const currOffX = -176;
 int const currOffY = -1685;
 int const currOffZ = 120;
@@ -59,6 +60,18 @@ int const currOffZ = 120;
 int const currScaleX = 10597;
 int const currScaleY = 11104;
 int const currScaleZ = 10940;
+
+
+/*
+// it is new brand compass to be used in ursus
+int const currOffX = 820;
+int const currOffY = -1346;
+int const currOffZ = -440;
+
+int const currScaleX = 10000;
+int const currScaleY = 10000;
+int const currScaleZ = 10000;
+*/
 
 // Data is printed as: aX aY aZ gX gY gZ
 // Your offsets: -1335 2584  770 -124  -13 -33
